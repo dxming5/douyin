@@ -16,17 +16,23 @@
 
 ```
 douyin/
-├── douyin.py              # 主程序
-├── aweme_list.json        # 博主列表（自动生成）
+├── main.py                # 程序入口
+├── cli.py                 # 命令行交互界面
+├── config.py              # 配置常量
+├── paths.py               # 路径管理
+├── url_parser.py          # JSON 解析与 URL 提取
+├── downloader.py          # 下载与格式转换
+├── utils.py               # 工具函数
 ├── json.log               # API 响应日志（手动导入）
-├── cfg.ini                # 配置文件（如有）
-└── download/              # 下载目录（如有）
-    ├── {博主名称}/
-    │   ├── url.txt        # 已下载 URL 记录
-    │   ├── *.mp4          # 视频文件
-    │   └── picture/       # 图片目录
-    │       └── *.jpg      # 图片文件
-    └── ...
+├── download/              # 下载目录（自动生成）
+│   ├── aweme_list.json    # 博主列表（自动生成）
+│   ├── {博主名称}/
+│   │   ├── url.txt        # 已下载 URL 记录
+│   │   ├── *.mp4          # 视频文件
+│   │   └── picture/       # 图片目录
+│   │       └── *.jpg      # 图片文件
+│   └── ...
+└── README.md              # 说明文档
 ```
 
 ## 使用方法
@@ -43,7 +49,7 @@ douyin/
 ### 第二步：运行程序
 
 ```bash
-python douyin.py
+python main.py
 ```
 
 ### 第三步：功能选择
@@ -61,7 +67,7 @@ python douyin.py
 
 ### 修改下载路径
 
-在 `douyin.py` 顶部修改 `CONFIGURED_DOWNLOAD_DIR` 常量：
+在 [config.py](file:///d:/Git%E4%BB%93%E5%BA%93/douyin/config.py) 中修改 `CONFIGURED_DOWNLOAD_DIR` 常量：
 
 ```python
 CONFIGURED_DOWNLOAD_DIR = 'F:/图片/douyin/'  # 修改为你的目标路径
@@ -71,10 +77,10 @@ CONFIGURED_DOWNLOAD_DIR = 'F:/图片/douyin/'  # 修改为你的目标路径
 
 ### User-Agent 配置
 
-如遇下载失败，可更新 `header` 字典中的浏览器标识：
+如遇下载失败，可在 [config.py](file:///d:/Git%E4%BB%93%E5%BA%93/douyin/config.py) 中更新 `HEADER` 字典中的浏览器标识：
 
 ```python
-header = {
+HEADER = {
     'User-Agent': '你的浏览器User-Agent',
     ...
 }
@@ -82,15 +88,30 @@ header = {
 
 ## 环境依赖
 
-- Python 3.x
-- PIL (Pillow)
-- 标准库：`urllib`, `ssl`, `json`, `os`, `time`, `socket`
+- **Python 3.x**
+- **Pillow** (图片格式转换)
 
 安装依赖：
 
 ```bash
 pip install Pillow
 ```
+
+**标准库依赖**：`urllib`, `ssl`, `json`, `os`, `time`, `socket`, `sys`, `re`, `shutil`, `datetime`
+
+## 项目架构
+
+项目采用模块化设计，各模块职责清晰：
+
+| 模块 | 职责 |
+|------|------|
+| [main.py](file:///d:/Git%E4%BB%93%E5%BA%93/douyin/main.py) | 程序入口，初始化和协调各模块 |
+| [cli.py](file:///d:/Git%E4%BB%93%E5%BA%93/douyin/cli.py) | 命令行交互界面，菜单控制 |
+| [config.py](file:///d:/Git%E4%BB%93%E5%BA%93/douyin/config.py) | 配置常量（编码、请求头、路径等） |
+| [paths.py](file:///d:/Git%E4%BB%93%E5%BA%93/douyin/paths.py) | 路径管理（下载目录、文件路径） |
+| [url_parser.py](file:///d:/Git%E4%BB%93%E5%BA%93/douyin/url_parser.py) | JSON 解析与 URL 提取 |
+| [downloader.py](file:///d:/Git%E4%BB%93%E5%BA%93/douyin/downloader.py) | 网络下载、去重、WebP 转 JPG |
+| [utils.py](file:///d:/Git%E4%BB%93%E5%BA%93/douyin/utils.py) | 通用工具函数（文件读写、编码处理） |
 
 ## 注意事项
 
