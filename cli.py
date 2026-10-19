@@ -16,7 +16,7 @@ def delete_blogger(blogger_list):
     """删除指定博主及其下载内容"""
     for i in range(0, len(blogger_list)):
         print(str(int(i + 1)) + '：' + blogger_list[i])
-    blog_id = read_int('输入对应得blog id：')
+    blog_id = read_int('输入对应的 blog id：')
     while blog_id <= 0 or blog_id > len(blogger_list):
         blog_id = read_int('blog id 输入错误，重新输入：')
     blogger_name = blogger_list[blog_id - 1]
@@ -38,7 +38,7 @@ def show_blogger_list(blogger_list):
 def run_cli():
     """运行交互式命令行循环"""
     while True:
-        function_selection = input('\n  a:下载 b:删除blog c:获取blogger列表 x:退出程序 \n请输入对应得指令：').strip().lower()
+        function_selection = input('\n  a:下载 b:删除blog c:获取blogger列表 x:退出程序 \n请输入对应的指令：').strip().lower()
         blogger_list = read_txt(paths.aweme_list_dir)
         if function_selection == 'a':
             # blogger_response = input('blogger response:')

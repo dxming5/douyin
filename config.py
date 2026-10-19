@@ -36,9 +36,3 @@ CONFIGURED_DOWNLOAD_DIR = 'F:/图片/douyin/'
 DEFAULT_DOWNLOAD_DIR = os.path.join(BASE_DIR, 'download')
 
 
-class CDownloadInfo(object):
-    """下载信息数据结构"""
-    m_NickName = ""     # 名字
-    m_CreateTime = ""   # 创建时间
-    m_Mode = ""         # 模式：图片或视频
-    m_UrlList = []      # url列表：视频只有一个url；图片有多个

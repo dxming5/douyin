@@ -11,7 +11,7 @@ import shutil
 from urllib import request
 
 from config import HEADER, SSL_CONTEXT, DOWNLOAD_TIMEOUT, MAX_RETRY
-from utils import read_txt, write_txt, make_dir
+from utils import read_txt, write_txt, make_dir, append_list_txt
 import paths  # 导入模块而非具体变量，以便动态获取更新后的值
 
 
@@ -36,7 +36,7 @@ def save_single_url(url, file_name):
                     open(file_name, 'wb') as file_handle:
                 shutil.copyfileobj(response, file_handle)
             return True
-        except Exception:
+        except Exception as error:
             # 清理下载失败产生的半截文件
             if os.path.exists(file_name):
                 try:
@@ -44,12 +44,13 @@ def save_single_url(url, file_name):
                 except OSError:
                     pass
             if attempt >= MAX_RETRY:
+                error_msg = '超过最大重试次数，最后异常：{}'.format(error)
                 print("\n    -->当前url({})下载异常次数超过{}次，退出下载！".format(url, MAX_RETRY))
                 # 记录失败信息
                 _download_failures.append({
                     'url': url,
                     'file': file_name,
-                    'error': '超过最大重试次数'
+                    'error': error_msg
                 })
                 return False
             time.sleep(random.uniform(0.5, 1.5))
@@ -69,7 +70,7 @@ def get_url_signature(url, start_tag, end_tag):
 
 
 def convert_webp_to_jpg(file_name):
-    """webp 转 jpg，转换成功后删除源 webp 文件"""
+    """webp 转 jpg，转换成功后删除源 webp 文件，返回是否成功"""
     from PIL import Image  # 延迟导入，避免启动时依赖 PIL
     try:
         im = Image.open(file_name)
@@ -82,8 +83,10 @@ def convert_webp_to_jpg(file_name):
         im.close()
         if os.path.exists(file_name):
             os.remove(file_name)
+        return True
     except Exception as error:
         print('\n    -->图片转换失败（{}）：{}'.format(file_name, error))
+        return False
 
 
 def download_by_type(all_url_dict, media_type):
@@ -143,7 +146,12 @@ def download_by_type(all_url_dict, media_type):
                 new_downloaded_urls.append(url_signature)
                 # webp转为jpg
                 if media_type == '图片' and os.path.exists(file_name):
-                    convert_webp_to_jpg(file_name)
+                    if not convert_webp_to_jpg(file_name):
+                        _download_failures.append({
+                            'url': url,
+                            'file': file_name,
+                            'error': 'webp 转 jpg 失败'
+                        })
 
         download_mblog_num += 1
         print('\r [{}已下载进度：{}%({}/{})]'.format(media_type, int(download_mblog_num / all_mblog_num * 100),
@@ -153,10 +161,9 @@ def download_by_type(all_url_dict, media_type):
         media_type, int(download_mblog_num / all_mblog_num * 100),
         download_mblog_num, all_mblog_num, ' ' * 50))
     
-    # 所有URL下载完成后，统一写入文件
+    # 所有URL下载完成后，统一批量追加写入文件
     if new_downloaded_urls:
-        for url in new_downloaded_urls:
-            write_txt(blogger_url_txt_dir, url)
+        append_list_txt(blogger_url_txt_dir, new_downloaded_urls)
 
 
 def get_failure_list():

@@ -54,6 +54,13 @@ def write_list_txt(txt_dir, content_list):
             file_handle.write(item + '\n')
 
 
+def append_list_txt(txt_dir, content_list):
+    """批量追加写入列表到txt文档（UTF-8）"""
+    with open(txt_dir, mode='a', encoding=ENCODING) as file_handle:
+        for item in content_list:
+            file_handle.write(item + '\n')
+
+
 def make_dir(dir_path):
     """创建目录（如果不存在）"""
     if not os.path.exists(dir_path):
