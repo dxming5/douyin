@@ -109,18 +109,26 @@ def download_by_type(all_url_dict, media_type):
         start_tag, end_tag = '&rc=', '&l='
         ext = '.mp4'
 
-    saved_signature_set = {get_url_signature(saved_url, start_tag, end_tag)
-                           for saved_url in saved_url_list}
+    # 直接存储特征码集合（无需再从URL提取）
+    saved_signature_set = set(saved_url_list)
 
+    # 记录本次新下载成功的URL（延迟写入）
+    new_downloaded_urls = []
+    
     download_mblog_num = 0
     for creat_time, url_mblog in all_url_dict.items():
         for index in range(0, len(url_mblog)):
             url = url_mblog[index]
-            print('\r [{}已下载进度：{}%({}/{})] 开始下载<{}>时刻第{}张(条){}：{}'.format(
+            # 视频用"条"，图片用"张"
+            unit = '条' if media_type == '视频' else '张'
+            print('\r [{}已下载进度：{}%({}/{})] 开始下载<{}>时刻第{}{}{}'.format(
                 media_type, int(download_mblog_num / all_mblog_num * 100), download_mblog_num,
-                all_mblog_num, creat_time, index + 1, media_type, url), end='')
+                all_mblog_num, creat_time, index + 1, unit, media_type), end='')
 
-            if get_url_signature(url, start_tag, end_tag) in saved_signature_set:
+            # 提取当前URL的特征码
+            url_signature = get_url_signature(url, start_tag, end_tag)
+            
+            if url_signature in saved_signature_set:
                 continue
 
             if media_type == '图片':
@@ -129,9 +137,10 @@ def download_by_type(all_url_dict, media_type):
                 file_name = os.path.join(blogger_dir, '{}{}'.format(creat_time, ext))
 
             if save_single_url(url, file_name):
-                saved_url_list.append(url)
-                saved_signature_set.add(get_url_signature(url, start_tag, end_tag))
-                write_txt(blogger_url_txt_dir, url)
+                # 添加到特征码集合（用于本次运行时的去重）
+                saved_signature_set.add(url_signature)
+                # 延迟写入：只保存特征码
+                new_downloaded_urls.append(url_signature)
                 # webp转为jpg
                 if media_type == '图片' and os.path.exists(file_name):
                     convert_webp_to_jpg(file_name)
@@ -139,7 +148,15 @@ def download_by_type(all_url_dict, media_type):
         download_mblog_num += 1
         print('\r [{}已下载进度：{}%({}/{})]'.format(media_type, int(download_mblog_num / all_mblog_num * 100),
                                                     download_mblog_num, all_mblog_num), end='')
-    print()
+    # 清除行尾残留的"开始下载..."字符，打印简洁的完成信息
+    print('\r [{}已下载进度：{}%({}/{})] 下载完成{}'.format(
+        media_type, int(download_mblog_num / all_mblog_num * 100),
+        download_mblog_num, all_mblog_num, ' ' * 50))
+    
+    # 所有URL下载完成后，统一写入文件
+    if new_downloaded_urls:
+        for url in new_downloaded_urls:
+            write_txt(blogger_url_txt_dir, url)
 
 
 def get_failure_list():
